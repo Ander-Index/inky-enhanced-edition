@@ -1,4 +1,4 @@
-LIST Dice = 
+LIST Dice =
     MeA1 = 11, MeA2, MeA3, MeA4,
     MeB1 = 21, MeB2, MeB3, MeB4,
     MeC1 = 31, MeC2, MeC3, MeC4,
@@ -9,43 +9,43 @@ LIST Dice =
     ThemC1 = 81, ThemC2, ThemC3, ThemC4,
     ThemD1 = 91, ThemD2, ThemD3, ThemD4,
     ThemE1 = 101, ThemE2, ThemE3, ThemE4
-    
-LIST Players = Me = 10, Them  = 60    
-    
+
+LIST Players = Me = 10, Them  = 60
+
 VAR DiceCountMe = 5
 VAR DiceCountThem = 5
 
 
-CONST DEBUG_FIXED_RANDOM = false // true 
+CONST DEBUG_FIXED_RANDOM = false // true / 调试：固定随机 / true 时启用
 
-CONST DEBUG_AI_DECISIONS = false // true 
+CONST DEBUG_AI_DECISIONS = false // true / 调试：AI 决策 / true 时启用
 
 {DEBUG_FIXED_RANDOM:
     ~ SEED_RANDOM(3)
 }
 
--> begin_game -> END 
+-> begin_game -> END
 
 
 
 /*
-    Aux
+    Aux / 辅助函数
 */
 
-=== function pop(ref _list) 
-    ~ temp el = LIST_MIN(_list) 
+=== function pop(ref _list)
+    ~ temp el = LIST_MIN(_list)
     ~ _list -= el
-    ~ return el 
+    ~ return el
 
 
 
-=== function came_from(-> x) 
+=== function came_from(-> x)
     ~ return TURNS_SINCE(x) == 0
 
 
 
-=== function print_number(x) 
-~ x = INT(x) // cast to an int, since this function can only handle ints!
+=== function print_number(x)
+~ x = INT(x) // cast to an int, since this function can only handle ints! / 转换为整数，因为此函数只能处理整数！
 {
     - x >= 1000000:
         ~ temp k = x mod 1000000
@@ -58,7 +58,7 @@ CONST DEBUG_AI_DECISIONS = false // true
         {print_number((x - z) / 100)} hundred {z > 0:and {print_number(z)}}
     - x == 0:
         zero
-    - x < 0: 
+    - x < 0:
         minus {print_number(-1 * x)}
     - else:
         { x >= 20:
@@ -102,28 +102,28 @@ CONST DEBUG_AI_DECISIONS = false // true
                 - 19: nineteen
             }
         }
-} 
+}
 
 /*
-    Dice
+    Dice / 骰子
 */
 
-=== function faceValue(dice) 
+=== function faceValue(dice)
     ~ return LIST_VALUE(dice) mod 10
 
 
 /*
-    Printing
+    Printing / 打印
 */
 
-=== function stateDiceFor(who) 
-    ~ temp dice = diceForPlayer(who) 
+=== function stateDiceFor(who)
+    ~ temp dice = diceForPlayer(who)
     <b>{listDice(dice)}</b>
 
 === function listDice(dice)
     {_listDice(dice, 1)}
 === function _listDice(dice, val)
-    ~ temp values = valuesIn(val, dice) 
+    ~ temp values = valuesIn(val, dice)
     ~ temp count = LIST_COUNT(values)
     { count > 0:
         {print_number(count)} {val}{count > 1:s}
@@ -132,25 +132,25 @@ CONST DEBUG_AI_DECISIONS = false // true
     {dice:
         { count > 0:
             { countValuesIn(faceValue(LIST_MIN(dice)), dice) == LIST_COUNT(dice):
-                <> and 
+                <> and
             - else:
-                <>, 
+                <>,
             }
         }
-        <> { _listDice(dice, val+1) } 
+        <> { _listDice(dice, val+1) }
     }
 
 /*
-    Queries
+    Queries / 查询
 */
 
-=== function countValuesFor(value, who) 
-    ~ temp dice = diceForPlayer(who) 
+=== function countValuesFor(value, who)
+    ~ temp dice = diceForPlayer(who)
     ~ return LIST_COUNT(valuesIn(value, dice))
-    
+
 === function countValuesIn(value, dice)
     ~ return LIST_COUNT(valuesIn(value, dice))
-    
+
 === function valuesIn(value, dice)
     ~ temp lowestDice = pop(dice)
     { lowestDice:
@@ -163,39 +163,39 @@ CONST DEBUG_AI_DECISIONS = false // true
     ~ return ()
 
 
-    
-    
 
-    
-=== function diceCountForPlayer(who) 
+
+
+
+=== function diceCountForPlayer(who)
     { who :
-    -   Me:     ~ return DiceCountMe 
-    -   Them:   ~ return DiceCountThem 
+    -   Me:     ~ return DiceCountMe
+    -   Them:   ~ return DiceCountThem
     }
-    
-=== function diceForPlayer(who) 
+
+=== function diceForPlayer(who)
     ~ return LIST_RANGE(Dice, LIST_VALUE(who), LIST_VALUE(who) + 10 * diceCountForPlayer(who))
-    
+
 /*
-    Rolling
+    Rolling / 掷骰子
 */
-    
+
 === function rollDice()
-    ~ Dice = () 
+    ~ Dice = ()
     ~ rollDiceFor(Me, DiceCountMe)
-    ~ rollDiceFor(Them, DiceCountThem) 
+    ~ rollDiceFor(Them, DiceCountThem)
  //   [Me:     {diceForPlayer(Me) }  ]
  //   [Them:   {diceForPlayer(Them) }]
 
-=== function rollDiceFor(who, diceNumber) 
-    { diceNumber > 0: 
+=== function rollDiceFor(who, diceNumber)
+    { diceNumber > 0:
         ~ temp diceOffset = LIST_VALUE(who) + (diceNumber - 1) * 10 + RANDOM(1, 4)
         ~ Dice += Dice(diceOffset)
-        ~ rollDiceFor(who, diceNumber - 1) 
+        ~ rollDiceFor(who, diceNumber - 1)
     }
-    
+
 /*
-    The current bet
+    The current bet / 当前叫牌
 */
 
 === function stateBet(bet)
@@ -205,400 +205,398 @@ CONST DEBUG_AI_DECISIONS = false // true
     ~ return LIST_VALUE(bet) mod 10
 
 === function betCount(bet)
-    ~ return FLOOR(LIST_VALUE(bet) / 10) 
+    ~ return FLOOR(LIST_VALUE(bet) / 10)
 
 
-=== function possibleBets() 
+=== function possibleBets()
     ~ return LIST_RANGE(LIST_ALL(Dice), LIST_VALUE(lastBet) + 1, (DiceCountMe + DiceCountThem) * 10 + 4)
-    
-=== function possibleBetCounts() 
+
+=== function possibleBetCounts()
     ~ temp bets = possibleBets()
     ~ return getCountsFromBets(bets)
 
 === function getCountsFromBets(bets)
-    ~ temp bet = pop(bets) 
-    { bet: 
-        ~ bet = Dice(betCount(bet) * 10 + 1) 
+    ~ temp bet = pop(bets)
+    { bet:
+        ~ bet = Dice(betCount(bet) * 10 + 1)
         ~ return bet + getCountsFromBets(bets)
     }
-    ~ return () 
+    ~ return ()
 
-=== function possibleBetsForCount(c) 
+=== function possibleBetsForCount(c)
     ~ return possibleBets() ^ LIST_RANGE(LIST_ALL(Dice), c * 10, c * 10 + 4)
 
 
 
-=== function countDiceAtValue(diceToConsider, value) 
-    ~ temp die = pop(diceToConsider) 
-    { die: 
+=== function countDiceAtValue(diceToConsider, value)
+    ~ temp die = pop(diceToConsider)
+    { die:
         ~ temp retValue = (faceValue(die) == value)
-        ~ return retValue + countDiceAtValue(diceToConsider, value) 
+        ~ return retValue + countDiceAtValue(diceToConsider, value)
     }
-    ~ return 0 
+    ~ return 0
 
 
 /*
-    Game Loop
+    Game Loop / 游戏循环
 */
 
 VAR firstTurn = Me
 
 VAR lastBet = ()
-    
-== begin_game 
-    You pull up a seat at the table. The Half-Orc opposite picks his teeth with a dagger. 
-    'Ready?' he grumbles. He tosses you a stack of dice.
-- (opts)
-    * (whatis)   'What's the game?'[] you ask.
-        'Swindlestones,' the Half-Orc replies. 'A game of luck and brains.' He chuckles. 'And <i>looks.</i>' 
-        -> opts 
-    *   { whatis } 'Tell me the rules.' 
-        'You roll behind your hand. I roll behind mine. You say, "There are 2 ones on the table," or something like that. I call to say, no, I do not believe it - or I say something higher. Higher number, or more dice. When called, we see who is right. Loser loses dice. No dice, loser is loser.' 
-        * *     'I understand.' 
-                
-        * *     'So the bids keep going up?' 
-                The Half-Orc nods. 
-        - -     'Is simple. Now, play.' 
-                -> opts 
-    +   [ Roll the dice ]
-        -> main
-    
-=== main 
 
-    ~ rollDice() 
-    You {DiceCountMe == 1:roll the remaining dice|gather up your {print_number(DiceCountMe)} dice and throw them} behind your palm, getting { stateDiceFor(Me)  }.
-    The Half-Orc rolls his {DiceCountThem > 1:{print_number(DiceCountThem)}} dice and {~chuckles|snorts}. 
-    
+== begin_game
+    You pull up a seat at the table. The Half-Orc opposite picks his teeth with a dagger. / 你在桌旁坐下。对面的半兽人用匕首剔着牙。
+    'Ready?' he grumbles. He tosses you a stack of dice. / "准备好了？"他咕哝道。他扔给你一叠骰子。
+- (opts)
+    * (whatis)   'What's the game?'[] you ask. / "这是什么游戏？[]"你问道。
+        'Swindlestones,' the Half-Orc replies. 'A game of luck and brains.' He chuckles. 'And <i>looks.</i>' / "Swindlestones，"半兽人回答。"一场运气和脑力的游戏。"他轻笑一声。"还有<i>察言观色。</i>"
+        -> opts
+    *   { whatis } 'Tell me the rules.' / "告诉我规则。"
+        'You roll behind your hand. I roll behind mine. You say, "There are 2 ones on the table," or something like that. I call to say, no, I do not believe it - or I say something higher. Higher number, or more dice. When called, we see who is right. Loser loses dice. No dice, loser is loser.' / "你在手后面掷骰。我在我手后面掷。你说，'桌上有 2 个 1 点，'之类的。我喊牌说，不，我不信——或者我说更高的牌。更高的点数，或更多的骰子。被喊牌时，我们看谁是对的。输家丢骰子。没骰子，输家就是输家。"
+        * *     'I understand.' / "我明白了。"
+
+        * *     'So the bids keep going up?' / "所以叫牌会越来越高？"
+                The Half-Orc nods. / 半兽人点点头。
+        - -     'Is simple. Now, play.' / "很简单。现在，开始玩吧。"
+                -> opts
+    +   [ Roll the dice ] / [掷骰子]
+        -> main
+
+=== main
+
+    ~ rollDice()
+    You {DiceCountMe == 1:roll the remaining dice|gather up your {print_number(DiceCountMe)} dice and throw them} behind your palm, getting { stateDiceFor(Me)  }. / 你{DiceCountMe == 1:掷出剩余的骰子|收起你的 {print_number(DiceCountMe)} 个骰子并掷出}，压在手掌后面，得到了 { stateDiceFor(Me) }。
+    The Half-Orc rolls his {DiceCountThem > 1:{print_number(DiceCountThem)}} dice and {~chuckles|snorts}. / 半兽人掷出他的{DiceCountThem > 1: {print_number(DiceCountThem)} 个}骰子，{~轻笑一声|哼了一声}。
+
     ~ resetAI()
 
     ~ lastBet = ()
     ~ Players = firstTurn
-    
-    
-    
+
+
+
     ->turnstart
-    
-= turnchange 
-    ~ Players = LIST_INVERT(Players) 
+
+= turnchange
+    ~ Players = LIST_INVERT(Players)
     -> turnstart
-    
-= turnstart 
-    { Players: 
-    -   Me:     -> my_turn 
-    -   Them:   -> their_turn 
-    } 
-    
+
+= turnstart
+    { Players:
+    -   Me:     -> my_turn
+    -   Them:   -> their_turn
+    }
+
 
 
 = my_turn
     { not came_from(-> their_turn):
-        'Your bet first,' the Half-Orc grumbles. 
+        'Your bet first,' the Half-Orc grumbles. / "你先叫牌，"半兽人咕哝道。
     }
-    
+
     { not came_from(-> stateDiceFor):
-        [ You have {stateDiceFor(Me) } ]
+        [ You have {stateDiceFor(Me) } ] / [你有 {stateDiceFor(Me) }]
     }
-    
+
 - (top)
-    
+
     { lastBet:
-        +   [ Call! ] 
-            'I call,' you declare. 
-            
+        +   [ Call! ] / [喊牌！]
+            'I call,' you declare. / "我喊牌，"你宣布。
+
             -> call_last_bet(Me)
     }
 
     ~ temp bets = possibleBetCounts()
     {bets:
-        -> bet_opts(bets, true) 
+        -> bet_opts(bets, true)
     }
-    
+
 = bet_opts(bets, countsOnly)
 - (opts)
     ~ temp bet = pop(bets)
     {countsOnly:
-        +   [ Bet {print_number(betCount(bet))} ...  ]
-            ~ bets = possibleBetsForCount(betCount(bet)) 
-            -> bet_opts(bets, false) 
+        +   [ Bet {print_number(betCount(bet))} ...  ] / [叫 {print_number(betCount(bet))} 个……]
+            ~ bets = possibleBetsForCount(betCount(bet))
+            -> bet_opts(bets, false)
     - else:
-        +   [ Bet {stateBet(bet)} ]
-            'I bet <b>{stateBet(bet)}</b>,' you declare.
-            -> makeBet(bet) 
+        +   [ Bet {stateBet(bet)} ] / [叫 {stateBet(bet)}]
+            'I bet <b>{stateBet(bet)}</b>,' you declare. / "我叫 <b>{stateBet(bet)}</b>，"你宣布。
+            -> makeBet(bet)
     }
-    { bets: 
-        -> opts 
+    { bets:
+        -> opts
     }
     { not countsOnly:
-        +   [ BACK ]
+        +   [ BACK ] / [返回]
             -> top
     }
-    -> DONE 
-    
+    -> DONE
 
-        
-    
-= makeBet(bet) 
-    ~ lastBet = bet 
+
+
+
+= makeBet(bet)
+    ~ lastBet = bet
     -> turnchange
-    
+
 
 = their_turn
 
-    'Let's see now,' the Half-Orc murmurs, scratching his chin with a hooked nail.
+    'Let's see now,' the Half-Orc murmurs, scratching his chin with a hooked nail. / "让我看看，"半兽人喃喃自语，用弯钩般的指甲搔着下巴。
 
-       
+
     ~ temp newBet = ()
-    
-    -> filter_and_obtain_bet(  newBet ) -> 
-    
-    
-    { not newBet: 
+
+    -> filter_and_obtain_bet(  newBet ) ->
+
+
+    { not newBet:
         -> he_calls
-    
+
     - else:
-        -> he_bets(newBet) 
-    } 
-    
-= he_bets(newBet) 
-    <> 'I bet <b>{stateBet(newBet)}</b>. <>
-    
+        -> he_bets(newBet)
+    }
+
+= he_bets(newBet)
+    <> 'I bet <b>{stateBet(newBet)}</b>. <> / '我叫 <b>{stateBet(newBet)}</b>。<>
+
     { cycle:
     -   {shuffle:
-        -   Now - you.
-        -   Well? 
-        -   You, now. 
-        -   Next, you. 
-        -   Your turn. 
-        -   Now you speak. 
+        -   Now - you. / 现在——你。
+        -   Well? / 嗯？
+        -   You, now. / 你，现在。
+        -   Next, you. / 接下来，你。
+        -   Your turn. / 轮到你了。
+        -   Now you speak. / 现在你说话。
         }
     -   {shuffle:
-        -   What say you? 
-        -   Give up now, I think. 
-        -   I have you, yes. 
-        -   Too big for you, I think. 
+        -   What say you? / 你怎么说？
+        -   Give up now, I think. / 现在就认输，我想。
+        -   I have you, yes. / 我赢定你了，没错。
+        -   Too big for you, I think. / 对你来说太大了，我想。
         -
         -
         -
         }
     }
     <>'
-    
-    -> makeBet(newBet) 
 
-    
+    -> makeBet(newBet)
+
+
  = he_calls
-        <> 'I call.'
-        
-        -> call_last_bet(Them) 
-          
-  
- 
+        <> 'I call.' / '我喊牌。'
+
+        -> call_last_bet(Them)
+
+
+
 = call_last_bet(who)
-    // who is calling on who
-    The dice are revealed. Alongside my { stateDiceFor(Me)  }, he has { stateDiceFor(Them)  }.
-    
+    // who is calling on who / 谁在喊谁的牌
+    The dice are revealed. Alongside my { stateDiceFor(Me)  }, he has { stateDiceFor(Them)  }. / 骰子亮出。除了我的 { stateDiceFor(Me) } 之外，他有 { stateDiceFor(Them) }。
+
     ~ temp valuesInSet = countValuesIn(betNumber(lastBet), Dice)
-    
+
     ~ temp betWasOkay = ( valuesInSet >= betCount(lastBet) )
-    
-    <> That puts {not betWasOkay:only} <b>{print_number(valuesInSet)} {betNumber(lastBet)}{valuesInSet>1:s }</b> on the table.
-    
-    
-    
+
+    <> That puts {not betWasOkay:only} <b>{print_number(valuesInSet)} {betNumber(lastBet)}{valuesInSet>1:s }</b> on the table. / <> 这意味着桌上有{not betWasOkay: 只有} <b>{print_number(valuesInSet)} 个 {betNumber(lastBet)}{valuesInSet>1:s }</b>。
+
+
+
     ~ temp winner = ()
-    
+
     {not betWasOkay:
         ~ winner = who
-    - else: 
+    - else:
         ~ winner = LIST_INVERT(who)
     }
-    
-    
+
+
     -> resolve_round(winner)
- 
-   
- = resolve_round(winner) 
+
+
+ = resolve_round(winner)
     { winner:
     - Me:   ~ DiceCountThem--
     - Them: ~ DiceCountMe--
     }
-    
+
     {
     - DiceCountThem <= 0:
         -> end_game(Me)
     - DiceCountMe <= 0:
         -> end_game(Them)
     }
-    
-    
-    
+
+
+
     { winner:
-    - Me: 
-        The Half-Orc grumbles with irritation, and he tosses one of his dice away. 
+    - Me:
+        The Half-Orc grumbles with irritation, and he tosses one of his dice away. / 半兽人恼怒地咕哝着，扔掉了他的一个骰子。
     - Them:
-        The Half-Orc nods in deep satisfaction, as you push one of your dice away. 
+        The Half-Orc nods in deep satisfaction, as you push one of your dice away. / 半兽人深感满意地点点头，你把自己的一个骰子推开。
     }
-    
-    +   [ Roll again ]
-        
-        ~ firstTurn = winner 
+
+    +   [ Roll again ] / [再掷一次]
+
+        ~ firstTurn = winner
         -> main
-    
+
 
 
 /*
-    AI
+    AI / AI 智能
 */
 
-=== end_game(winner) 
-    { winner: 
-    - Me:   -> you_win 
-    - Them:     -> he_wins  
-    } 
-    
-= you_win 
-    You beam with pleasure as you relieve the Half-Orc of his gold. Naturally, he reaches for his sword...
-    
-    ->-> 
-    
-= he_wins 
-    You toss your last dice, and the creature reaches across the table to scoop the pile of gold into his lap. 
-    'I say you loser from moment you sit on chair,' he grumbles with delight. 'Loser face.'
-    ->-> 
+=== end_game(winner)
+    { winner:
+    - Me:   -> you_win
+    - Them:     -> he_wins
+    }
+
+= you_win
+    You beam with pleasure as you relieve the Half-Orc of his gold. Naturally, he reaches for his sword... / 你喜笑颜开地从半兽人手里赢走了他的金币。自然地，他伸手去拔剑……
+
+    ->->
+
+= he_wins
+    You toss your last dice, and the creature reaches across the table to scoop the pile of gold into his lap. / 你扔出最后一个骰子，那怪物伸手越过桌子，把那堆金币捞到自己膝上。
+    'I say you loser from moment you sit on chair,' he grumbles with delight. 'Loser face.' / "从你坐上椅子的那一刻我就说你是输家，"他得意地咕哝道。"一张输家脸。"
+    ->->
 
 
 /*
-    AI
+    AI / AI 智能
 */
 
 
 
 === function findBetsUpTo(value, maxCount, bets)
-    ~ temp bet = pop(bets) 
-    { bet: 
-        ~ temp retVal = () 
-        { betNumber(bet) == value && betCount(bet) <= maxCount: 
-            ~ retVal = bet 
+    ~ temp bet = pop(bets)
+    { bet:
+        ~ temp retVal = ()
+        { betNumber(bet) == value && betCount(bet) <= maxCount:
+            ~ retVal = bet
         }
         ~ return retVal + findBetsUpTo(value, maxCount, bets)
-    } 
-    ~ return () 
+    }
+    ~ return ()
 
 VAR whatDiceDoWeThinkYouHave = ()
 
 === function resetAI()
-    ~ whatDiceDoWeThinkYouHave = ()   
- 
+    ~ whatDiceDoWeThinkYouHave = ()
+
 ===  filter_and_obtain_bet(  ref newBet )
 
-    {DEBUG_AI_DECISIONS:  [ he's got {stateDiceFor(Them) } ] } 
+    {DEBUG_AI_DECISIONS:  [ he's got {stateDiceFor(Them) } ] } / {DEBUG_AI_DECISIONS: [他有 {stateDiceFor(Them) }] }
 
-    ~ temp countOfLastBet = betCount(lastBet) 
-    ~ temp valueOfLastBet = betNumber(lastBet) 
+    ~ temp countOfLastBet = betCount(lastBet)
+    ~ temp valueOfLastBet = betNumber(lastBet)
 
-    { lastBet: 
-        ~ temp iThinkYouHave = FLOOR(countOfLastBet / 2) + 1 
-        ~ iThinkYouHave -= countValuesIn(valueOfLastBet, whatDiceDoWeThinkYouHave) 
-        { iThinkYouHave: // we think you've got more than we thought. add 1 dice. 
+    { lastBet:
+        ~ temp iThinkYouHave = FLOOR(countOfLastBet / 2) + 1
+        ~ iThinkYouHave -= countValuesIn(valueOfLastBet, whatDiceDoWeThinkYouHave)
+        { iThinkYouHave: // we think you've got more than we thought. add 1 dice. / 我们认为你有的比我们想的更多。加 1 个骰子。
             ~ whatDiceDoWeThinkYouHave += LIST_RANDOM(valuesIn ( valueOfLastBet, LIST_ALL(Dice) - whatDiceDoWeThinkYouHave ) )
         }
     }
-    
-    
-    
-    
+
+
+
+
     ~ temp aRandomValue = RANDOM(1, 4)
 
     ~ temp bets = possibleBets()
-    
+
     ~ temp cannotCall = countValuesFor(betNumber(lastBet), Them) >= betCount(lastBet)
-    
+
     ~ temp valuesIHave = countValuesFor(valueOfLastBet, Them)
-    
+
     ~ temp uncertaintyInYourDice = MAX(0, DiceCountMe - LIST_COUNT(whatDiceDoWeThinkYouHave) )
-    
-    {DEBUG_AI_DECISIONS: [ He thinks you have {listDice(whatDiceDoWeThinkYouHave)}, with uncertainty {uncertaintyInYourDice} ]  }
-    
+
+    {DEBUG_AI_DECISIONS: [ He thinks you have {listDice(whatDiceDoWeThinkYouHave)}, with uncertainty {uncertaintyInYourDice} ]  } / {DEBUG_AI_DECISIONS: [他认为你有 {listDice(whatDiceDoWeThinkYouHave)}，不确定性为 {uncertaintyInYourDice}] }
+
     +   { valuesIHave + DiceCountMe < countOfLastBet } ->
-        {DEBUG_AI_DECISIONS: [ you overbet; we know it ]  }
-        // you overbet and we know it for sure
-    
-    
-    +   {findBetsUpTo(4, countValuesFor(4, Them), bets) } {RANDOM(1, 5) >= 4 }  -> 
-        {DEBUG_AI_DECISIONS: [ safe high 4 bet ] }
+        {DEBUG_AI_DECISIONS: [ you overbet; we know it ]  } / {DEBUG_AI_DECISIONS: [你叫过头了；我们知道]}
+        // you overbet and we know it for sure / 你叫过头了，我们确定知道
+
+
+    +   {findBetsUpTo(4, countValuesFor(4, Them), bets) } {RANDOM(1, 5) >= 4 }  ->
+        {DEBUG_AI_DECISIONS: [ safe high 4 bet ] } / {DEBUG_AI_DECISIONS: [安全的高位 4 叫牌]}
         ~ newBet = findBetsUpTo(4, countValuesFor(4, Them) , bets)
-    
-    +   { not lastBet }     -> 
-        { DEBUG_AI_DECISIONS:  [ picking a first bet randomly ] }
-        ~ temp myCount = countValuesFor(aRandomValue, Them) 
-        ~ newBet = findBetsUpTo(aRandomValue, myCount + 1,  bets ) 
-        
-    
-        
-    +   { LIST_COUNT(whatDiceDoWeThinkYouHave) > DiceCountMe * 1.5 } {not cannotCall} -> 
-        {DEBUG_AI_DECISIONS: [ we suspect you're overbetting ] }
-        // your bets are all over the place. Call. 
-    
-    +   { RANDOM(1, 3) == 1 } 
+
+    +   { not lastBet }     ->
+        { DEBUG_AI_DECISIONS:  [ picking a first bet randomly ] } / { DEBUG_AI_DECISIONS: [随机选择首次叫牌]}
+        ~ temp myCount = countValuesFor(aRandomValue, Them)
+        ~ newBet = findBetsUpTo(aRandomValue, myCount + 1,  bets )
+
+
+
+    +   { LIST_COUNT(whatDiceDoWeThinkYouHave) > DiceCountMe * 1.5 } {not cannotCall} ->
+        {DEBUG_AI_DECISIONS: [ we suspect you're overbetting ] } / {DEBUG_AI_DECISIONS: [我们怀疑你在叫过头]}
+        // your bets are all over the place. Call. / 你的叫牌乱七八糟。喊牌。
+
+    +   { RANDOM(1, 3) == 1 }
         { DiceCountThem + countValuesIn(valueOfLastBet, whatDiceDoWeThinkYouHave) <= countOfLastBet + 1 }
-        -> 
-        {DEBUG_AI_DECISIONS: [ we're raising you ]  }
+        ->
+        {DEBUG_AI_DECISIONS: [ we're raising you ]  } / {DEBUG_AI_DECISIONS: [我们在加注]}
         ~ newBet =  findBetsUpTo(valueOfLastBet, countOfLastBet + 1, bets )
-        
-      
-    +   { valuesIHave + countValuesIn(valueOfLastBet, whatDiceDoWeThinkYouHave) + FLOOR(uncertaintyInYourDice / 4) + 1 <  countOfLastBet }  {not cannotCall} ->  
-       {DEBUG_AI_DECISIONS:  [ we suspect you dont' have the dice to back this up ] }
-    
-    +   {findBetsUpTo(3, countValuesFor(3, Them), bets) }  
-        { countValuesIn(4 , whatDiceDoWeThinkYouHave )  == 0} 
-        -> 
-        {DEBUG_AI_DECISIONS:  [ we've got high 3s, and we don't think you have any 4s; pushing you ] }
+
+
+    +   { valuesIHave + countValuesIn(valueOfLastBet, whatDiceDoWeThinkYouHave) + FLOOR(uncertaintyInYourDice / 4) + 1 <  countOfLastBet }  {not cannotCall} ->
+       {DEBUG_AI_DECISIONS:  [ we suspect you dont' have the dice to back this up ] } / {DEBUG_AI_DECISIONS: [我们怀疑你没有足够的骰子来支持这个叫牌]}
+
+    +   {findBetsUpTo(3, countValuesFor(3, Them), bets) }
+        { countValuesIn(4 , whatDiceDoWeThinkYouHave )  == 0}
+        ->
+        {DEBUG_AI_DECISIONS:  [ we've got high 3s, and we don't think you have any 4s; pushing you ] } / {DEBUG_AI_DECISIONS: [我们有高位的 3，且我们认为你没有任何 4；逼你]}
         ~ newBet = findBetsUpTo(3, countValuesFor(3, Them) , bets)
-       
-    +   {findBetsUpTo(1, countValuesFor(1, Them) + countValuesIn(1, whatDiceDoWeThinkYouHave) + uncertaintyInYourDice  / 2, bets) }     -> 
-        {DEBUG_AI_DECISIONS: [ default bet: sensible 1s ] } 
+
+    +   {findBetsUpTo(1, countValuesFor(1, Them) + countValuesIn(1, whatDiceDoWeThinkYouHave) + uncertaintyInYourDice  / 2, bets) }     ->
+        {DEBUG_AI_DECISIONS: [ default bet: sensible 1s ] } / {DEBUG_AI_DECISIONS: [默认叫牌：合理的 1]}
         ~ newBet = findBetsUpTo(1, countValuesFor(1, Them) + countValuesIn(1, whatDiceDoWeThinkYouHave)  + uncertaintyInYourDice  / 2, bets)
 
-    +   {findBetsUpTo(3, countValuesFor(3, Them) + countValuesIn(3, whatDiceDoWeThinkYouHave)  + uncertaintyInYourDice  / 2, bets) }     -> 
-        {DEBUG_AI_DECISIONS: [ default bet: sensible 3s ] }
+    +   {findBetsUpTo(3, countValuesFor(3, Them) + countValuesIn(3, whatDiceDoWeThinkYouHave)  + uncertaintyInYourDice  / 2, bets) }     ->
+        {DEBUG_AI_DECISIONS: [ default bet: sensible 3s ] } / {DEBUG_AI_DECISIONS: [默认叫牌：合理的 3]}
         ~ newBet = findBetsUpTo(3, countValuesFor(3, Them) + countValuesIn(3, whatDiceDoWeThinkYouHave) + uncertaintyInYourDice  / 2, bets)
-        
-    +   {findBetsUpTo(2, countValuesFor(2, Them) + countValuesIn(2, whatDiceDoWeThinkYouHave)  + uncertaintyInYourDice  / 2, bets) }     -> 
-        {DEBUG_AI_DECISIONS: [ default bet: sensible 2s ] }
+
+    +   {findBetsUpTo(2, countValuesFor(2, Them) + countValuesIn(2, whatDiceDoWeThinkYouHave)  + uncertaintyInYourDice  / 2, bets) }     ->
+        {DEBUG_AI_DECISIONS: [ default bet: sensible 2s ] } / {DEBUG_AI_DECISIONS: [默认叫牌：合理的 2]}
         ~ newBet = findBetsUpTo(2, countValuesFor(2, Them) + countValuesIn(2, whatDiceDoWeThinkYouHave) + uncertaintyInYourDice  / 2, bets)
-        
-    +   {findBetsUpTo(4, countValuesFor(4, Them) + countValuesIn(4, whatDiceDoWeThinkYouHave)  + uncertaintyInYourDice  / 2, bets) }     -> 
-       {DEBUG_AI_DECISIONS:  [ default bet: sensible 4s ] }
-        ~ newBet = findBetsUpTo(4, countValuesFor(4, Them) + countValuesIn(4, whatDiceDoWeThinkYouHave) + uncertaintyInYourDice  / 2, bets)    
-    
-       
-    +   -> 
-        {DEBUG_AI_DECISIONS: [ look for a fallback bet ] }
+
+    +   {findBetsUpTo(4, countValuesFor(4, Them) + countValuesIn(4, whatDiceDoWeThinkYouHave)  + uncertaintyInYourDice  / 2, bets) }     ->
+       {DEBUG_AI_DECISIONS:  [ default bet: sensible 4s ] } / {DEBUG_AI_DECISIONS: [默认叫牌：合理的 4]}
+        ~ newBet = findBetsUpTo(4, countValuesFor(4, Them) + countValuesIn(4, whatDiceDoWeThinkYouHave) + uncertaintyInYourDice  / 2, bets)
+
+
+    +   ->
+        {DEBUG_AI_DECISIONS: [ look for a fallback bet ] } / {DEBUG_AI_DECISIONS: [寻找后备叫牌]}
         - - (makebet)
             ~ newBet = pop(bets)
-            {DEBUG_AI_DECISIONS:  [ {newBet}:  { betCount(newBet)} <= {countValuesFor(betNumber(newBet), Them)} + {countValuesIn(betNumber(newBet), whatDiceDoWeThinkYouHave)} + {uncertaintyInYourDice} ] } 
-            
-        + + { betCount(newBet) <= countValuesFor(betNumber(newBet), Them) + countValuesIn(betNumber(newBet), whatDiceDoWeThinkYouHave) + uncertaintyInYourDice  } 
-            {RANDOM(1, 5) >= 3 || cannotCall }  -> 
-            { DEBUG_AI_DECISIONS: [ Try a risky higher bet ]  }
-            ->-> 
-            
-            
-        + + -> 
-            { not bets: 
-                { DEBUG_AI_DECISIONS: [ We're trapped. Call. ]  }
+            {DEBUG_AI_DECISIONS:  [ {newBet}:  { betCount(newBet)} <= {countValuesFor(betNumber(newBet), Them)} + {countValuesIn(betNumber(newBet), whatDiceDoWeThinkYouHave)} + {uncertaintyInYourDice} ] } / {DEBUG_AI_DECISIONS: [{newBet}: { betCount(newBet)} <= {countValuesFor(betNumber(newBet), Them)} + {countValuesIn(betNumber(newBet), whatDiceDoWeThinkYouHave)} + {uncertaintyInYourDice}]}
+
+        + + { betCount(newBet) <= countValuesFor(betNumber(newBet), Them) + countValuesIn(betNumber(newBet), whatDiceDoWeThinkYouHave) + uncertaintyInYourDice  }
+            {RANDOM(1, 5) >= 3 || cannotCall }  ->
+            { DEBUG_AI_DECISIONS: [ Try a risky higher bet ]  } / { DEBUG_AI_DECISIONS: [尝试冒险的高叫牌]}
+            ->->
+
+
+        + + ->
+            { not bets:
+                { DEBUG_AI_DECISIONS: [ We're trapped. Call. ]  } / { DEBUG_AI_DECISIONS: [我们被困住了。喊牌。]}
                 ~ newBet = ()
-                ->-> 
+                ->->
             }
-            -> makebet 
-            
-        
-        
-    
-    -   // ensure we only have a single bet
+            -> makebet
+
+
+
+
+    -   // ensure we only have a single bet / 确保我们只有一个叫牌
         ~ newBet = LIST_RANDOM(newBet)
-        
-        
+
+
         ->->
-    
-    

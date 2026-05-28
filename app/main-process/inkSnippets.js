@@ -42,13 +42,13 @@ exports.snippets = [
             {
                 name: i18n._('Knot (main section)'),
                 ink: "=== knotName ===\n"
-                    +"This is the content of the knot.\n"
+                    +"This is the content of the knot. / 这是节点内容。\n"
                     +"-> END\n"
             },
             {
                 name: i18n._('Stitch (sub-section)'),
                 ink: "= stitchName\n"
-                    +"This is the content of the stitch that should be embedded within a knot.\n"
+                    +"This is the content of the stitch that should be embedded within a knot. / 嵌入在节点中的章节内容。\n"
                     +"-> END\n"
             },
             {separator: true},
@@ -71,19 +71,19 @@ exports.snippets = [
         snippets: [
             {
                 name: i18n._('Basic Choice'),
-                ink:  "* This is a choice that can only be chosen once\n"
+                ink:  "* This is a choice that can only be chosen once / 只能选择一次的选项\n"
             },
             {
                 name: i18n._('Sticky choice'),
-                ink: "+ This is a sticky choice - the player can choose it more than once\n"
+                ink: "+ This is a sticky choice - the player can choose it more than once / 可重复选择的粘性选项\n"
             },
             {
                 name: i18n._('Choice without printing'),
-                ink: "* [A choice where the content isn't printed after choosing]\n"
+                ink: "* [选择后不输出内容的选项] / A choice where the content isn't printed after choosing\n"
             },
             {
                 name: i18n._('Choice with mixed output'),
-                ink: "* Try [it] this example!\n"
+                ink: "* Try [it] this example! / 试试 [it] 这个例子！\n"
             },
         ]
     },
@@ -122,7 +122,7 @@ exports.snippets = [
         snippets: [
             {
                 name:  i18n._('Condition'),
-                ink: "{yourVariable: This is written if yourVariable is true|Otherwise this is written}"
+                ink: "{yourVariable: This is shown if true / 变量为真时展示|Otherwise this / 否则展示此项}"
             }
         ]
     },
@@ -136,9 +136,9 @@ exports.snippets = [
             {
                 name: i18n._('Condition'),
                 ink: "{yourVariable:\n"+
-                     "    This is written if yourVariable is true.\n"+
+                     "    This is written if true. / 变量为真时输出此文本\n"+
                      "  - else:\n"+
-                     "    Otherwise this is written.\n"+
+                     "    Otherwise this is written. / 否则输出此文本\n"+
                      "}\n"
             }
         ]
@@ -152,13 +152,13 @@ exports.snippets = [
         snippets: [
             {
                 name: i18n._('Single-line comment'),
-                ink: "// This line is a comment.\n"
+                ink: "// This line is a comment. / 这是一行注释。\n"
             }, 
             {
                 name: i18n._('Block comment'),
                 ink: "/* ---------------------------------\n"+
                      "\n" +
-                     "   This whole section is a comment \n"+
+                     "   This whole section is a comment / 整个区域都是注释\n"+
                      "\n" +
                      " ----------------------------------*/\n"
             }

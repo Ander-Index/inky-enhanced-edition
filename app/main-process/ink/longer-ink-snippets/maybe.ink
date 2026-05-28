@@ -1,15 +1,14 @@
 /*
-	Quick random function for varying choices
+	Quick random function for varying choices / 用于随机变化的快速随机函数
 
-	Usage: 
+	Usage: / 用法：
 
-		*	{maybe()} [Ask about apples]
-		*	{maybe()} [Ask about oranges]
-		*	{maybe()} [Ask about bananas]
-		
+		*	{maybe()} [Ask about apples / 询问苹果]
+		*	{maybe()} [Ask about oranges / 询问橙子]
+		*	{maybe()} [Ask about bananas / 询问香蕉]
+
 
 */
 
 === function maybe(list)
 	~ return RANDOM(1, 3) == 1
-
