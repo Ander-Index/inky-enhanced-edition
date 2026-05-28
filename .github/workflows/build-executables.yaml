@@ -1,9 +1,6 @@
 name: Build the executables
 
-on:
-  workflow_dispatch:
-  push:
-    branches: [master]
+on: workflow_dispatch
 
 defaults:
   run:
