@@ -3,7 +3,7 @@ name: Build the executables
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [master]
 
 defaults:
   run:
@@ -23,11 +23,11 @@ jobs:
 
       - name: Set app configuration
         env:
-          APP_NAME: inky
-          DESCRIPTION: "An editor for ink: inkle's narrative scripting language"
+          APP_NAME: inky-enhanced-edition
+          DESCRIPTION: "Inky Enhanced Edition - An improved editor for ink"
 
           # This must be of the format "N.N.N", where the N's are all numbers
-          VERSION: 0.16.0
+          VERSION: 0.17.0
 
           # By default, the author will be your name on GitHub. You can manually change this.
           AUTHOR: "inkle ltd."
@@ -61,28 +61,28 @@ jobs:
         run: npm install
 
       # insures that the index.html has been built
-      - name: Build electron app (Mac x64)
+      - name: Build electron app (Mac)
         if: matrix.os == 'macos-latest'
         run: |
-          npx --yes @electron/packager app Inky --platform=darwin --arch=x64 --icon=./resources/Icon.icns --extend-info=./resources/info.plist --app-bundle-id=com.inkle.inky --prune --asar.unpackDir="main-process/ink" --ignore="inklecate_win.exe"
+          npx --yes @electron/packager app "Inky Enhanced Edition" --platform=darwin --arch=x64 --icon=./resources/Icon.icns --extend-info=./resources/info.plist --app-bundle-id=com.inkle.inky --prune --asar.unpackDir="main-process/ink" --ignore="inklecate_win.exe"
           mkdir -p ReleaseUpload
-          ditto -c -k --keepParent Inky-darwin-x64/Inky.app ReleaseUpload/Inky_mac.zip
+          npx --yes appdmg resources/appdmg.json "ReleaseUpload/InkyEE_mac.dmg"
 
       - name: Build electron app (Win)
         if: matrix.os == 'windows-latest'
         run: |
-          npx --yes @electron/packager app Inky --platform=win32  --arch=x64 --icon=./resources/Icon1024.png.ico --prune --asar.unpackDir="main-process/ink" --ignore="inklecate_mac" --win32metadata.ProductName="Inky" --win32metadata.CompanyName="inkle Ltd" --win32metadata.FileDescription="Inky" --win32metadata.OriginalFilename="Inky" --win32metadata.InternalName="Inky"
+          npx --yes @electron/packager app "Inky Enhanced Edition" --platform=win32  --arch=x64 --icon=./resources/Icon1024.png.ico --prune --asar.unpackDir="main-process/ink" --ignore="inklecate_mac" --win32metadata.ProductName="Inky Enhanced Edition" --win32metadata.CompanyName="inkle Ltd (Enhanced Edition fork)" --win32metadata.FileDescription="Inky Enhanced Edition" --win32metadata.OriginalFilename="Inky Enhanced Edition" --win32metadata.InternalName="Inky Enhanced Edition"
           mkdir -p ReleaseUpload
-          7z a -tzip Inky-win32-x64.zip Inky-win32-x64 
-          mv Inky-win32-x64.zip ReleaseUpload/Inky-win32-x64.zip
+          7z a -tzip InkyEE_windows_x64.zip Inky-win32-x64 
+          mv InkyEE_windows_x64.zip ReleaseUpload/InkyEE_windows_x64.zip
 
       
       - name: Build electron app (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
         run: |
-          npx --yes @electron/packager app Inky --platform=linux --arch=x64 --icon=./resources/Icon.icns --extend-info=resources/info.plist --prune --asar.unpackDir="main-process/ink" --ignore="inklecate_mac"
+          npx --yes @electron/packager app "Inky Enhanced Edition" --platform=linux --arch=x64 --icon=./resources/Icon.icns --extend-info=resources/info.plist --prune --asar.unpackDir="main-process/ink" --ignore="inklecate_mac"
           mkdir -p ReleaseUpload
-          zip -r ReleaseUpload/Inky_linux.zip Inky-linux-x64
+          zip -r ReleaseUpload/InkyEE_linux.zip Inky-linux-x64
 
 
       - name: Add MacOS certs
@@ -153,7 +153,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: |
-            ReleaseUpload/**/*.zip
+            ReleaseUpload/**/*
             
       
       - name: Release on GitHub (Automated Tag)
@@ -164,5 +164,5 @@ jobs:
         with:
           tag_name: ${{ format('{0}.0.0', github.run_number) }}
           files: |
-            ReleaseUpload/**/*.zip
+            ReleaseUpload/**/*
             
