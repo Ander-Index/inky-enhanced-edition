@@ -276,6 +276,14 @@ function refresh() {
           enabled: callbacks.isFocusedWindow,
           click: callbacks.keyboardShortcuts,
         },
+        {
+          type: "separator",
+        },
+        {
+          label: i18n._("Preferences"),
+          accelerator: "CmdOrCtrl+,",
+          click: callbacks.showSettings,
+        },
       ],
     },
     {
