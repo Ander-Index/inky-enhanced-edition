@@ -50,7 +50,7 @@ function refresh() {
     "250%",
     "300%",
   ]) {
-    zoom_percents.push({
+    var item = {
       label: zoom_percent.substring(0, 4),
       type: "radio",
       checked: zoom_percent === zoom + "%",
@@ -58,7 +58,11 @@ function refresh() {
         zoom = zoom_percent.replace("%", "");
         callbacks.zoom(zoom);
       },
-    });
+    };
+    if (zoom_percent === "100%") {
+      item.accelerator = "CmdOrCtrl+0";
+    }
+    zoom_percents.push(item);
   }
 
   // Create menus for ink snippets (built in snippets)
