@@ -36,6 +36,8 @@ module.exports = {
   "Wrap Limit Range": "换行列数范围",
 
   // Session settings
+  "Player Font Family": "预览字体",
+  "Player Font Size": "预览字号",
   "Mode": "语法模式",
   "New Line Mode": "换行符模式",
   "Use Wrap Mode": "使用换行模式",

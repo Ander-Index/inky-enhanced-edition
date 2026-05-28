@@ -372,6 +372,24 @@ ipc.on("set-autocomplete-disabled", (event, autoCompleteDisabled) => {
   EditorView.setAutoCompleteDisabled(autoCompleteDisabled);
 });
 
+ipc.on("set-font-size", (event, fontSize) => {
+  EditorView.setFontSize(fontSize);
+});
+
+ipc.on("set-font-family", (event, fontFamily) => {
+  EditorView.setFontFamily(fontFamily);
+});
+
+ipc.on("set-player-font-size", (event, size) => {
+  var el = document.getElementById("player");
+  if (el) el.style.fontSize = size + "px";
+});
+
+ipc.on("set-player-font-family", (event, family) => {
+  var el = document.getElementById("player");
+  if (el) el.style.fontFamily = family;
+});
+
 function updateTheme(event, newTheme) {
   let themes = ["dark", "contrast", "focus"];
   themes = themes.filter((e) => e !== newTheme);
@@ -400,7 +418,7 @@ ipc.on("zoom", (event, amount) => {
 
   if (amount > 2) {
     editorEl.style.fontSize = (12 * amount) / 100 + "px";
-    playerEl.style.fontSize = (14 * amount) / 100 + "px";
+    playerEl.style.fontSize = (12 * amount) / 100 + "px";
   } else {
     if (currentSize == "") {
       if (amount > 0) {
@@ -417,6 +435,8 @@ ipc.on("zoom", (event, amount) => {
     editorEl.style.fontSize = currentSize + "px";
     playerEl.style.fontSize = currentSize + "px";
   }
+  var newSize = parseInt(editorEl.style.fontSize);
+  if (newSize) EditorView.syncFontSizeFromZoom(newSize);
 });
 
 ipc.on("insertSnippet", (event, snippetContent) => {

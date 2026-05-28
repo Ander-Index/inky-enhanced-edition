@@ -108,6 +108,22 @@ function ProjectWindow(filePath) {
       "set-autocomplete-disabled",
       !!settings.autoCompleteDisabled,
     );
+    this.browserWindow.webContents.send(
+      "set-font-size",
+      settings.fontSize,
+    );
+    this.browserWindow.webContents.send(
+      "set-font-family",
+      settings.fontFamily,
+    );
+    this.browserWindow.webContents.send(
+      "set-player-font-size",
+      settings.playerFontSize,
+    );
+    this.browserWindow.webContents.send(
+      "set-player-font-family",
+      settings.playerFontFamily,
+    );
   });
 
   // Project settings may affect menus etc, so we refresh that
@@ -325,6 +341,10 @@ ProjectWindow.getViewSettings = function () {
     theme: "light",
     zoom: "100",
     animationEnabled: true,
+    fontSize: 12,
+    fontFamily: "monospace",
+    playerFontSize: 14,
+    playerFontFamily: "system-ui",
   };
 
   if (!fs.existsSync(viewSettingsPath)) {
@@ -376,6 +396,10 @@ ipc.on("project-final-close", (event) => {
 ipc.on("project-settings-needs-reload", (event, rootInkFilePath) => {
   var win = ProjectWindow.withWebContents(event.sender);
   win.refreshProjectSettings(rootInkFilePath);
+});
+
+ipc.on("save-font-setting", (event, key, value) => {
+  ProjectWindow.addOrChangeViewSetting(key, value);
 });
 
 ipc.on("set-native-window-title", (event, newWindowTitle) => {

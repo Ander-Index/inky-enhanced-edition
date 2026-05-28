@@ -484,7 +484,7 @@ module.exports.generateSettingsMenu = function generateSettingsMenu (editor) {
             });
         } else {
             el = egen.createInput(item, val, clss);
-            el.addEventListener('change', function(e) {
+            var inputHandler = function(e) {
                 try{
                     if(e.target.value === 'true') {
                         obj[e.target.id](true);
@@ -496,7 +496,9 @@ module.exports.generateSettingsMenu = function generateSettingsMenu (editor) {
                 } catch (err) {
                     throw new Error(err);
                 }
-            });
+            };
+            el.addEventListener('change', inputHandler);
+            el.addEventListener('input', inputHandler);
         }
         el.style.cssText = 'float:right;';
         div.appendChild(el);

@@ -6,6 +6,28 @@ const language_tools = ace.require("ace/ext/language_tools");
 // Expose settings panel translations for ACE's ext-settings_menu
 window.__inkyI18n = require("./settingsI18n.js");
 
+// Player font settings (preview pane)
+editor.setPlayerFontSize = function(size) {
+    var el = document.getElementById("player");
+    if (el) el.style.fontSize = Number(size) + "px";
+    var ipc = require("electron").ipcRenderer;
+    ipc.send("save-font-setting", "playerFontSize", Number(size));
+};
+editor.getPlayerFontSize = function() {
+    var el = document.getElementById("player");
+    return el ? parseInt(el.style.fontSize) || 14 : 14;
+};
+editor.setPlayerFontFamily = function(family) {
+    var el = document.getElementById("player");
+    if (el) el.style.fontFamily = family;
+    var ipc = require("electron").ipcRenderer;
+    ipc.send("save-font-setting", "playerFontFamily", family);
+};
+editor.getPlayerFontFamily = function() {
+    var el = document.getElementById("player");
+    return el ? el.style.fontFamily || "system-ui" : "system-ui";
+};
+
 // Add setFontFamily/getFontFamily so ACE settings panel can discover it
 editor.setFontFamily = function(family) {
     this.setOption("fontFamily", family);
@@ -13,6 +35,22 @@ editor.setFontFamily = function(family) {
 editor.getFontFamily = function() {
     return this.getOption("fontFamily");
 };
+
+// Fix: ACE settings panel passes string values, ensure font size gets a number
+var _origSetFontSize = editor.setFontSize;
+editor.setFontSize = function(size) {
+    _origSetFontSize.call(this, Number(size));
+    require("electron").ipcRenderer.send("save-font-setting", "fontSize", Number(size));
+};
+
+// Notify main process when font family changes
+editor.setFontFamily = (function(orig) {
+    return function(family) {
+        orig.call(this, family);
+        var ipc = require("electron").ipcRenderer;
+        ipc.send("save-font-setting", "fontFamily", family);
+    };
+})(editor.setFontFamily);
 
 const inkCompleter = require("./inkCompleter.js").inkCompleter;
 
@@ -212,6 +250,23 @@ exports.EditorView = {
   },
   getCurrentCursorPos: () => {
     return editor.getCursorPosition();
+  },
+  setFontSize: (size) => {
+    editor.setFontSize(size);
+  },
+  setFontFamily: (family) => {
+    editor.setFontFamily(family);
+  },
+  syncFontSizeFromZoom: (size) => {
+    editor.setFontSize(size);
+    // Also persist player font size from zoom
+    var playerEl = document.getElementById('player');
+    if (playerEl) {
+        var playerSize = parseInt(playerEl.style.fontSize);
+        if (playerSize) {
+            require('electron').ipcRenderer.send('save-font-setting', 'playerFontSize', playerSize);
+        }
+    }
   },
   setAutoCompleteDisabled: (autoCompleteDisabled) => {
     editor.setOptions({
