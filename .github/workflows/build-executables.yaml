@@ -66,7 +66,8 @@ jobs:
         run: |
           npx --yes @electron/packager app "Inky Enhanced Edition" --platform=darwin --arch=x64 --icon=./resources/Icon.icns --extend-info=./resources/info.plist --app-bundle-id=com.inkle.inky --prune --asar.unpackDir="main-process/ink" --ignore="inklecate_win.exe"
           mkdir -p ReleaseUpload
-          npx --yes appdmg resources/appdmg.json "ReleaseUpload/InkyEE_mac.dmg"
+          npm install --no-save appdmg
+          npx appdmg resources/appdmg.json "ReleaseUpload/InkyEE_mac.dmg"
 
       - name: Build electron app (Win)
         if: matrix.os == 'windows-latest'
@@ -80,9 +81,9 @@ jobs:
       - name: Build electron app (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
         run: |
-          npx --yes @electron/packager app "Inky Enhanced Edition" --platform=linux --arch=x64 --icon=./resources/Icon.icns --extend-info=resources/info.plist --prune --asar.unpackDir="main-process/ink" --ignore="inklecate_mac"
+          npx --yes @electron/packager app "Inky Enhanced Edition" --platform=linux --arch=x64 --prune --asar.unpackDir="main-process/ink" --ignore="inklecate_mac"
           mkdir -p ReleaseUpload
-          zip -r ReleaseUpload/InkyEE_linux.zip Inky-linux-x64
+          zip -r ReleaseUpload/InkyEE_linux.zip "Inky Enhanced Edition-linux-x64"
 
 
       - name: Add MacOS certs
