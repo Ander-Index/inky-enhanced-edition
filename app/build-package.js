@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 const packager = require('@electron/packager');
-const appdmg = process.platform == "darwin" ? require('appdmg') : null;
+
 
 const allPlatforms = ["mac", "win32", "win64", "linux"];
 
@@ -62,30 +62,25 @@ function deleteAtPath(relativePath) {
     }
 }
 
-// Make DMG on Mac
-async function makeDMG() {
-    return new Promise((resolve, reject) => {
-        const ee = appdmg({ 
-            source: path.normalize("../resources/appdmg.json"), 
-            target: path.normalize("../ReleaseUpload/Inky.dmg")
-        });
-        
-        ee.on('progress', function (info) {
-            if( info.type == "step-begin" ) {
-                console.log(`[${info.current}/${info.total}]: ${info.title}`)
-            }
-        });
-        
-        ee.on('finish', function () {
-            console.log("Successfully created Inky.dmg");
-            resolve();
-        });
-        
-        ee.on('error', function (err) {
-            console.error("Error when creating Inky.dmg:", err);
-            reject(err);
-        });
-    });
+// Make DMG on Mac using hdiutil (no Node native module dependencies)
+async function makeDMG(appPath, dmgPath, appName) {
+    var tmpDir = path.normalize("../dmg_tmp");
+    if (fs.existsSync(tmpDir)) fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.mkdirSync(tmpDir, { recursive: true });
+
+    // Copy .app into temp dir
+    await runCommand(`cp -R "${appPath}" "${tmpDir}/"`);
+
+    // Create symlink to /Applications
+    fs.symlinkSync("/Applications", path.join(tmpDir, "Applications"));
+
+    // Create DMG
+    var volname = appName || "Inky Enhanced Edition";
+    await runCommand(`hdiutil create -volname "${volname}" -srcfolder "${tmpDir}" -ov -format UDZO "${dmgPath}"`);
+
+    // Cleanup
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    console.log("Successfully created DMG: " + dmgPath);
 }
 
 
@@ -114,8 +109,8 @@ async function buildPackageForPlatform(targetPlatform) {
     let outputAppDirPath;
     let finalZipOrDmgPath;
     if( targetPlatform == "mac" ) {
-        outputAppDirPath = "../Inky-darwin-universal";
-        finalZipOrDmgPath = "../ReleaseUpload/Inky_mac.dmg";
+        outputAppDirPath = "../Inky Enhanced Edition-darwin-universal";
+        finalZipOrDmgPath = "../ReleaseUpload/InkyEE_mac.dmg";
     }
     else if( targetPlatform == "win32" ) {
         outputAppDirPath = "../Inky-win32-ia32";
@@ -144,7 +139,7 @@ async function buildPackageForPlatform(targetPlatform) {
     let opts = {
         dir: '.', // Source directory (app directory)
         out: "..",
-        name: 'Inky', 
+        name: 'Inky Enhanced Edition', 
         overwrite: true,
         extendInfo: '../resources/info.plist',
         appBundleId: 'com.inkle.inky',
@@ -202,7 +197,9 @@ async function buildPackageForPlatform(targetPlatform) {
 
         // Create .dmg on mac
         if( targetPlatform == "mac" ) {
-            await makeDMG();
+            var appDir = path.normalize(outputAppDirPath);
+            var appName = "Inky Enhanced Edition";
+            await makeDMG(path.join(appDir, appName + ".app"), path.normalize(finalZipOrDmgPath), appName);
         }
 
         // Create .zip on other platforms
