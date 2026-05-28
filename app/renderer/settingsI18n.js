@@ -9,8 +9,8 @@ module.exports = {
   "Display Indent Guides": "显示缩进引导线",
   "Drag Delay": "拖拽延迟",
   "Fade Fold Widgets": "淡出折叠控件",
-  "Font Family": "字体",
-  "Font Size": "字号",
+  "Font Family": "编辑字体",
+  "Font Size": "编辑字号",
   "Highlight Active Line": "高亮当前行",
   "Highlight Gutter Line": "高亮边栏行",
   "Highlight Selected Word": "高亮选中词",
@@ -36,8 +36,8 @@ module.exports = {
   "Wrap Limit Range": "换行列数范围",
 
   // Session settings
-  "Player Font Family": "预览字体",
-  "Player Font Size": "预览字号",
+  "Font_ Player Family": "预览字体",
+  "Font_ Player Size": "预览字号",
   "Mode": "语法模式",
   "New Line Mode": "换行符模式",
   "Use Wrap Mode": "使用换行模式",

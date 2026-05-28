@@ -427,7 +427,9 @@ module.exports.generateSettingsMenu = function generateSettingsMenu (editor) {
         elements.sort(function(a, b) {
             var x = a.getAttribute('contains');
             var y = b.getAttribute('contains');
-            return x.localeCompare(y);
+            if (x < y) return -1;
+            if (x > y) return 1;
+            return 0;
         });
     }
     function wrapElements() {

@@ -7,25 +7,27 @@ const language_tools = ace.require("ace/ext/language_tools");
 window.__inkyI18n = require("./settingsI18n.js");
 
 // Player font settings (preview pane)
-editor.setPlayerFontSize = function(size) {
+editor.setFont_PlayerSize = function(size) {
+    var num = Number(size);
+    if (isNaN(num) || num <= 0) num = 14;
     var el = document.getElementById("player");
-    if (el) el.style.fontSize = Number(size) + "px";
-    var ipc = require("electron").ipcRenderer;
-    ipc.send("save-font-setting", "playerFontSize", Number(size));
+    if (el) el.style.fontSize = num + "px";
+    require("electron").ipcRenderer.send("save-font-setting", "playerFontSize", num);
 };
-editor.getPlayerFontSize = function() {
+editor.getFont_PlayerSize = function() {
     var el = document.getElementById("player");
     return el ? parseInt(el.style.fontSize) || 14 : 14;
 };
-editor.setPlayerFontFamily = function(family) {
+editor.setFont_PlayerFamily = function(family) {
+    if (!family || !family.trim()) family = "system-ui";
     var el = document.getElementById("player");
     if (el) el.style.fontFamily = family;
-    var ipc = require("electron").ipcRenderer;
-    ipc.send("save-font-setting", "playerFontFamily", family);
+    require("electron").ipcRenderer.send("save-font-setting", "playerFontFamily", family);
 };
-editor.getPlayerFontFamily = function() {
+editor.getFont_PlayerFamily = function() {
     var el = document.getElementById("player");
-    return el ? el.style.fontFamily || "system-ui" : "system-ui";
+    var f = el ? el.style.fontFamily || "system-ui" : "system-ui";
+    return f.replace(/["']/g, '');
 };
 
 // Add setFontFamily/getFontFamily so ACE settings panel can discover it
@@ -33,22 +35,25 @@ editor.setFontFamily = function(family) {
     this.setOption("fontFamily", family);
 };
 editor.getFontFamily = function() {
-    return this.getOption("fontFamily");
+    var f = this.getOption("fontFamily") || "";
+    return f.replace(/["']/g, '');
 };
 
 // Fix: ACE settings panel passes string values, ensure font size gets a number
 var _origSetFontSize = editor.setFontSize;
 editor.setFontSize = function(size) {
-    _origSetFontSize.call(this, Number(size));
-    require("electron").ipcRenderer.send("save-font-setting", "fontSize", Number(size));
+    var num = Number(size);
+    if (isNaN(num) || num <= 0) num = 12;
+    _origSetFontSize.call(this, num);
+    require("electron").ipcRenderer.send("save-font-setting", "fontSize", num);
 };
 
 // Notify main process when font family changes
 editor.setFontFamily = (function(orig) {
     return function(family) {
+        if (!family || !family.trim()) family = "monospace";
         orig.call(this, family);
-        var ipc = require("electron").ipcRenderer;
-        ipc.send("save-font-setting", "fontFamily", family);
+        require("electron").ipcRenderer.send("save-font-setting", "fontFamily", family);
     };
 })(editor.setFontFamily);
 
