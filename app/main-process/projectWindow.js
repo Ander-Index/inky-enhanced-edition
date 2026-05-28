@@ -52,7 +52,7 @@ function ProjectWindow(filePath) {
       .submenu.items.find((e) => e.checked)
       .label.toLowerCase();
 
-  electronWindowOptions.title = i18n._("Inky");
+  electronWindowOptions.title = "Inky Enhanced Edition";
   this.browserWindow = new BrowserWindow(electronWindowOptions);
   this.browserWindow.loadURL("file://" + __dirname + "/../renderer/index.html");
   this.browserWindow.setSheetOffset(49);
