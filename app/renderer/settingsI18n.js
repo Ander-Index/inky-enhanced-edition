@@ -1,0 +1,58 @@
+// Translations for ACE settings panel labels.
+// Key: English label (auto-generated from set* method names), Value: Chinese translation.
+module.exports = {
+  // Editor settings
+  "Animated Scroll": "动画滚动",
+  "Behaviours Enabled": "启用行为",
+  "Blinking Cursor": "闪烁光标",
+  "Cursor Style": "光标样式",
+  "Display Indent Guides": "显示缩进引导线",
+  "Drag Delay": "拖拽延迟",
+  "Fade Fold Widgets": "淡出折叠控件",
+  "Font Family": "字体",
+  "Font Size": "字号",
+  "Highlight Active Line": "高亮当前行",
+  "Highlight Gutter Line": "高亮边栏行",
+  "Highlight Selected Word": "高亮选中词",
+  "H Scroll Bar Always Visible": "始终显示水平滚动条",
+  "Keyboard Handler": "键盘模式",
+  "Merge Undo Deltas": "合并撤销操作",
+  "Overwrite": "覆盖模式",
+  "Print Margin Column": "打印边距列",
+  "Read Only": "只读",
+  "Scroll Speed": "滚动速度",
+  "Selection Style": "选区样式",
+  "Show Fold Widgets": "显示折叠控件",
+  "Show Gutter": "显示边栏",
+  "Show Invisibles": "显示不可见字符",
+  "Show Line Numbers": "显示行号",
+  "Show Print Margin": "显示打印边距",
+  "Tab Size": "缩进宽度",
+  "Theme": "主题",
+  "Use Soft Tabs": "使用软制表符",
+  "Use Worker": "使用后台语法检查",
+  "V Scroll Bar Always Visible": "始终显示垂直滚动条",
+  "Wrap": "自动换行",
+  "Wrap Limit Range": "换行列数范围",
+
+  // Session settings
+  "Mode": "语法模式",
+  "New Line Mode": "换行符模式",
+  "Use Wrap Mode": "使用换行模式",
+  "Use Worker ": "启用后台语法检查",
+
+  // Renderer settings
+  "Padding": "内边距",
+  "Scroll Margin": "滚动边距",
+  "Textarea Checker": "文本域检查",
+
+  // Dropdown option labels
+  "ace": "默认",
+  "vim": "Vim",
+  "emacs": "Emacs",
+  "textarea": "纯文本",
+  "sublime": "Sublime",
+  "unix": "Unix (LF)",
+  "windows": "Windows (CRLF)",
+  "auto": "自动",
+};

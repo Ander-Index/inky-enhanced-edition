@@ -3,6 +3,9 @@ const Range = ace.require("ace/range").Range;
 const TokenIterator = ace.require("ace/token_iterator").TokenIterator;
 const language_tools = ace.require("ace/ext/language_tools");
 
+// Expose settings panel translations for ACE's ext-settings_menu
+window.__inkyI18n = require("./settingsI18n.js");
+
 const inkCompleter = require("./inkCompleter.js").inkCompleter;
 
 var editorMarkers = [];
