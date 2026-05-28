@@ -1,6 +1,6 @@
 {
   "name": "inky",
-  "productName": "Inky",
+  "productName": "Inky Enhanced Edition",
   "version": "0.15.2",
   "description": "An editor for ink",
   "main": "main-process/main.js",
