@@ -89,12 +89,12 @@ async function createZip(sourceDir, targetZipPath) {
     targetZipPath = path.resolve(targetZipPath);
 
     if( process.platform == "darwin" || process.platform == "linux" ) {
-        await runCommand(`cd ${sourceDir} && zip -r ${targetZipPath} . -x "*.DS_Store"`);
+        await runCommand(`cd "${sourceDir}" && zip -r "${targetZipPath}" . -x "*.DS_Store"`);
     }
     
     // Assume powershell is available on windows
     else if( process.platform == "win32") {
-        await runCommand(`powershell Compress-Archive ${sourceDir} ${targetZipPath}`);
+        await runCommand(`powershell Compress-Archive "${sourceDir}" "${targetZipPath}"`);
     }
 }
 
@@ -113,15 +113,15 @@ async function buildPackageForPlatform(targetPlatform) {
         finalZipOrDmgPath = "../ReleaseUpload/InkyEE_mac.dmg";
     }
     else if( targetPlatform == "win32" ) {
-        outputAppDirPath = "../Inky-win32-ia32";
+        outputAppDirPath = "../Inky Enhanced Edition-win32-ia32";
         finalZipOrDmgPath = "../ReleaseUpload/Inky_windows_32.zip";
     }
     else if( targetPlatform == "win64" ) {
-        outputAppDirPath = "../Inky-win32-x64";
+        outputAppDirPath = "../Inky Enhanced Edition-win32-x64";
         finalZipOrDmgPath = "../ReleaseUpload/Inky_windows_64.zip";
     }
     else if( targetPlatform == "linux" ) {
-        outputAppDirPath = "../Inky-linux-x64";
+        outputAppDirPath = "../Inky Enhanced Edition-linux-x64";
         finalZipOrDmgPath = "../ReleaseUpload/Inky_linux.zip";
     } else {
         throw "Unexpected platform: "+targetPlatform;
