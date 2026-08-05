@@ -288,6 +288,23 @@ PlayerView.setEvents({
       }
     });
   },
+  getSourceText: (filename) => {
+    if (!InkProject.currentProject) return null;
+    var normalizedFilename = filename ? filename.replace(/\\/g, "/") : filename;
+    var file = InkProject.currentProject.inkFileWithRelativePath(normalizedFilename);
+    if (file) return file.getValue();
+    if (InkProject.currentProject.activeInkFile) return InkProject.currentProject.activeInkFile.getValue();
+    return null;
+  },
+  getAllSourceTexts: () => {
+    if (!InkProject.currentProject || !InkProject.currentProject.files) return [];
+    return InkProject.currentProject.files.map(function(f) {
+      return { filename: f.relativePath(), content: f.getValue() };
+    });
+  },
+  getLocationInSource: (outputTextOffset, callback) => {
+    LiveCompiler.getLocationInSource(outputTextOffset, callback);
+  },
 });
 
 ExpressionWatchView.setEvents({

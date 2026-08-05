@@ -6,6 +6,12 @@ var lastFadeTime = 0;
 var $textBuffer = null;
 var instructionPrefix = null;
 var animationEnabled = true;
+var $lastTextParagraph = null;
+var $previousTextParagraph = null;
+
+var textParagraphs = [];
+var tagQueue = [];
+var processingTagQueue = false;
 
 document.addEventListener("keyup", function(){
     $("#player").removeClass("altKey");
@@ -109,6 +115,13 @@ function prepareForNewPlaythrough(sessionId) {
 
     $textBuffer.text("");
     $textBuffer.height(0);
+
+    $lastTextParagraph = null;
+    $previousTextParagraph = null;
+
+    textParagraphs = [];
+    tagQueue = [];
+    processingTagQueue = false;
 }
 
 function addTextSection(text)
@@ -143,6 +156,18 @@ function addTextSection(text)
     // Append the actual content
     $textBuffer.append($paragraph);
 
+    // Track text paragraphs so that delayed standalone tags (e.g. # CLEAR on its own line)
+    // can be reattached to the paragraph they belong to, instead of appearing one line late.
+    $paragraph.data('isEmpty', text.trim().length === 0);
+    $previousTextParagraph = $lastTextParagraph;
+    $lastTextParagraph = $paragraph;
+
+    textParagraphs.push({
+        $paragraph: $paragraph,
+        range: {start: previousContentLength, length: text.length},
+        text: text
+    });
+
     // Find the offset of each word in the content, for clickability
     var offset = previousContentLength;
     $paragraph.children("span").each((i, element) => {
@@ -172,13 +197,216 @@ function addTextSection(text)
 
 function addTags(tags)
 {
+    // If we have the source text event provided by controller.js, try to place the tag
+    // at the correct source line. Otherwise fall back to the heuristic inline placement.
+    if (events.getAllSourceTexts && textParagraphs.length > 0) {
+        tagQueue.push(tags);
+        processTagQueue();
+    } else {
+        renderTagsHeuristic(tags);
+    }
+}
+
+function renderTagsHeuristic(tags)
+{
     var tagsStr = tags.join(", ");
-    var $tags = $(`<p class='tags'># ${tagsStr}</p>`);
+    var $targetParagraph = null;
+    if ($lastTextParagraph && !$lastTextParagraph.data('isEmpty')) {
+        $targetParagraph = $lastTextParagraph;
+    } else if ($previousTextParagraph) {
+        $targetParagraph = $previousTextParagraph;
+    } else if ($lastTextParagraph) {
+        $targetParagraph = $lastTextParagraph;
+    }
 
-    $textBuffer.append($tags);
+    if ($targetParagraph) {
+        var $tags = $(`<span class='tags'> # ${tagsStr}</span>`);
+        $targetParagraph.append($tags);
+        if (animationEnabled && shouldAnimate()) fadeIn($tags);
+    } else {
+        var $tags = $(`<p class='tags'># ${tagsStr}</p>`);
+        $textBuffer.append($tags);
+        if (animationEnabled && shouldAnimate()) fadeIn($tags);
+    }
+}
 
-    if( animationEnabled && shouldAnimate() )
-        fadeIn($tags);
+function processTagQueue()
+{
+    if (processingTagQueue || tagQueue.length === 0) return;
+    processingTagQueue = true;
+
+    while (tagQueue.length > 0) {
+        var tags = tagQueue.shift();
+        var placement = determineTagPlacementSync(tags);
+        renderTagsWithPlacement(tags, placement);
+    }
+
+    processingTagQueue = false;
+}
+
+function determineTagPlacementSync(tags)
+{
+    var allSources = events.getAllSourceTexts ? events.getAllSourceTexts() : [];
+    if (allSources.length === 0 || textParagraphs.length === 0) {
+        return {targetIndex: textParagraphs.length - 1, fallback: true};
+    }
+
+    var lastIndex = textParagraphs.length - 1;
+    var lastText = textParagraphs[lastIndex].text;
+
+    // Find the source file that contains the last text paragraph.
+    var sourceContent = null;
+    for (var i = 0; i < allSources.length; i++) {
+        if (findSourceLineOfText(lastText, allSources[i].content) !== null) {
+            sourceContent = allSources[i].content;
+            break;
+        }
+    }
+
+    if (!sourceContent) {
+        return {targetIndex: lastIndex, fallback: true};
+    }
+
+    // Find the source line of each text paragraph in this file.
+    var paraLines = findParagraphLinesInSource(textParagraphs, sourceContent);
+
+    // Find the tag's source line, choosing the occurrence closest to the last paragraph.
+    var lastParaLine = paraLines[lastIndex] !== null ? paraLines[lastIndex] : 1;
+    var tagLine = findTagLineNearestTo(tags, sourceContent, lastParaLine);
+
+    if (tagLine === null) {
+        return {targetIndex: lastIndex, fallback: true};
+    }
+
+    // Attach the tag to the last paragraph that appears at or before the tag's source line.
+    var targetIndex = -1;
+    for (var i = 0; i < paraLines.length; i++) {
+        if (paraLines[i] !== null && paraLines[i] <= tagLine) {
+            targetIndex = i;
+        }
+    }
+    if (targetIndex === -1) targetIndex = 0;
+
+    return {
+        targetIndex: targetIndex,
+        tagLine: tagLine,
+        targetLine: paraLines[targetIndex] !== null ? paraLines[targetIndex] : null,
+        fallback: false
+    };
+}
+
+function findSourceLineOfText(text, content, startLine)
+{
+    var firstLine = text.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 0; })[0];
+    if (!firstLine) return null;
+
+    var lines = content.split('\n');
+    var startIndex = startLine ? Math.max(0, startLine - 1) : 0;
+    for (var i = startIndex; i < lines.length; i++) {
+        if (lines[i].indexOf(firstLine) !== -1) {
+            return i + 1;
+        }
+    }
+    return null;
+}
+
+function findParagraphLinesInSource(paragraphs, content)
+{
+    var lines = [];
+    var searchStartLine = 1;
+
+    for (var i = 0; i < paragraphs.length; i++) {
+        var foundLine = findSourceLineOfText(paragraphs[i].text, content, searchStartLine);
+        lines.push(foundLine);
+        if (foundLine !== null) {
+            searchStartLine = foundLine + 1;
+        }
+    }
+
+    return lines;
+}
+
+function findTagLineNearestTo(tags, sourceText, targetLine)
+{
+    var bestLine = null;
+    var bestDistance = Infinity;
+
+    tags.forEach(function(tag) {
+        var escapedTag = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        var regex = new RegExp("#\\s*" + escapedTag, "g");
+        var match;
+        while ((match = regex.exec(sourceText)) !== null) {
+            var line = sourceText.substring(0, match.index).split('\n').length;
+            var distance = Math.abs(line - targetLine);
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                bestLine = line;
+            }
+        }
+    });
+
+    return bestLine;
+}
+
+function renderTagsWithPlacement(tags, placement)
+{
+    var tagsStr = tags.join(", ");
+
+    if (placement.targetIndex === null || placement.targetIndex < 0 || placement.targetIndex >= textParagraphs.length) {
+        var $tags = $(`<p class='tags'># ${tagsStr}</p>`);
+        $textBuffer.append($tags);
+        if (animationEnabled && shouldAnimate()) fadeIn($tags);
+        return;
+    }
+
+    var $target = textParagraphs[placement.targetIndex].$paragraph;
+
+    // Source lookups failed: fall back to appending after the target paragraph.
+    if (placement.fallback || placement.tagLine === null || placement.targetLine === null) {
+        var $tags = $(`<p class='tags'># ${tagsStr}</p>`);
+        $target.after($tags);
+        if (animationEnabled && shouldAnimate()) fadeIn($tags);
+        return;
+    }
+
+    if (placement.tagLine === placement.targetLine) {
+        // Tag is on the same source line as the target paragraph: append inline.
+        var $tags = $(`<span class='tags'> # ${tagsStr}</span>`);
+        $target.append($tags);
+        if (animationEnabled && shouldAnimate()) fadeIn($tags);
+    } else if (placement.tagLine < placement.targetLine) {
+        // Tag is on an earlier source line than the target: insert a separate tag paragraph before it.
+        var $tags = $(`<p class='tags'># ${tagsStr}</p>`);
+        $target.before($tags);
+        if (animationEnabled && shouldAnimate()) fadeIn($tags);
+    } else {
+        // Tag is on a later source line than the target: insert a separate tag paragraph after it.
+        var $tags = $(`<p class='tags'># ${tagsStr}</p>`);
+        $target.after($tags);
+        if (animationEnabled && shouldAnimate()) fadeIn($tags);
+    }
+}
+
+function findTagLineNearestTo(tags, sourceText, targetLine)
+{
+    var bestLine = null;
+    var bestDistance = Infinity;
+
+    tags.forEach(function(tag) {
+        var escapedTag = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        var regex = new RegExp("#\\s*" + escapedTag, "g");
+        var match;
+        while ((match = regex.exec(sourceText)) !== null) {
+            var line = sourceText.substring(0, match.index).split('\n').length;
+            var distance = Math.abs(line - targetLine);
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                bestLine = line;
+            }
+        }
+    });
+
+    return bestLine;
 }
 
 function addChoice(choice, callback)
@@ -248,6 +476,11 @@ function addHorizontalDivider()
     if (($textBuffer[0].lastChild == null) || ($textBuffer[0].lastChild.tagName != "HR")) {
         $textBuffer.append("<hr/>");
     }
+    $lastTextParagraph = null;
+    $previousTextParagraph = null;
+    textParagraphs = [];
+    tagQueue = [];
+    processingTagQueue = false;
 }
 
 function addLineError(error, callback)

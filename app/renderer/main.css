@@ -661,12 +661,19 @@ img.issue-icon.warning {
   font-family: monospace;
 }
 
+#player p.storyText .tags {
+  color: #AAA;
+  font-family: monospace;
+  white-space: nowrap;
+}
+
 #player p.choice .tags {
   padding-left: 1em;
 }
 
 #main.hideTags #player p.tags,
-#main.hideTags #player p.choice .tags {
+#main.hideTags #player p.choice .tags,
+#main.hideTags #player p.storyText .tags {
     display: none;
 }
 
