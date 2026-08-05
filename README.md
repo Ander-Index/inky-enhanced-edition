@@ -4,7 +4,7 @@
 
 > 关于 ink 语言和 Inky 编辑器的详细介绍，请参阅[原版 Inky 仓库](https://github.com/inkle/inky)。
 >
-> **注意**：本分支的所有改动均由本仓库作者使用 DeepSeek V4 Pro 进行 Vibe Coding 完成。本分支不会向原仓库提交任何代码，以避免代码污染。
+> **注意**：本分支的所有改动均由本仓库作者使用 AI 辅助完成。本分支不会向原仓库提交任何代码，以避免代码污染。
 
 ---
 
@@ -17,6 +17,9 @@
 - **修复顶级菜单汉化失效**：`&File` → `文件` 等含 `&` 前缀的菜单项现在能正确翻译
 - **修复设置面板字号不生效**：ACE 设置面板传入字符串 `"14"` 而非数字导致 CSS 单位缺失，现已自动转换
 - **修复设置面板改动丢失**：文本输入框关闭面板时未触发保存事件，现已修复
+- **修复全角字符对不齐**：编辑器中 `——`（破折号）和 `……`（省略号）等全角字符不再导致光标与文本错位
+- **修复预览窗格标签错位**：`# CLEAR` 等标签不再错后一行显示，独立标签与行尾标签均能正确定位
+- **修复预览窗格标签截断**：`# IMAGE:` 等带参数标签不再被截断，预览中显示完整内容
 
 ### ✨ 新功能
 
@@ -35,6 +38,7 @@
 
 - 应用打包名改为 **Inky Enhanced Edition**
 - DMG 制作改用系统自带 `hdiutil`，不再依赖 `appdmg` 原生模块（兼容 Node.js v24+）
+- 打包脚本支持应用名带空格的路径，macOS / Windows / Linux 三端打包无需额外处理
 
 ---
 
@@ -55,6 +59,9 @@ cd app && npm run build-package -- -zip mac
 
 # 构建 Windows zip（可在 macOS 上交叉编译）
 cd app && npm run build-package -- -zip win64
+
+# 构建 Linux zip（可在 macOS 上交叉编译）
+cd app && npm run build-package -- -zip linux
 ```
 
 ---
@@ -67,5 +74,4 @@ Copyright (c) 2016 inkle Ltd.
 
 ---
 
-*以上改进由 [DeepSeek V4 Pro](https://deepseek.com) 通过 vibe coding 完成。本分支不会向上游仓库提交代码，以避免代码污染。*
-
+*本分支不会向上游仓库提交代码，以避免代码污染。*
