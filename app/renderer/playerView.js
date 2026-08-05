@@ -287,11 +287,23 @@ function determineTagPlacementSync(tags)
     }
     if (targetIndex === -1) targetIndex = 0;
 
+    // inklecate truncates tags that contain colons (e.g. # IMAGE: https://...). Recover the
+    // full tag text from the source line so the preview shows the complete tag.
+    var sourceLines = sourceContent.split('\n');
+    var sourceLine = tagLine >= 1 && tagLine <= sourceLines.length ? sourceLines[tagLine - 1] : null;
+    var fullTags = tags;
+    if (sourceLine) {
+        fullTags = tags.map(function(tag) {
+            return extractFullTagFromSourceLine(sourceLine, tag);
+        });
+    }
+
     return {
         targetIndex: targetIndex,
         tagLine: tagLine,
         targetLine: paraLines[targetIndex] !== null ? paraLines[targetIndex] : null,
-        fallback: false
+        fallback: false,
+        fullTags: fullTags
     };
 }
 
@@ -348,9 +360,40 @@ function findTagLineNearestTo(tags, sourceText, targetLine)
     return bestLine;
 }
 
+function extractFullTagFromSourceLine(sourceLine, truncatedTag)
+{
+    var idx = sourceLine.indexOf(truncatedTag);
+    if (idx === -1) return truncatedTag;
+
+    // Find the '#' that starts this tag
+    var start = idx;
+    while (start > 0 && sourceLine[start - 1] !== '#') {
+        start--;
+    }
+    if (start > 0 && sourceLine[start - 1] === '#') {
+        start = start - 1;
+    } else {
+        start = idx;
+    }
+
+    // Find the end of the tag (end of line or start of next tag)
+    var end = idx + truncatedTag.length;
+    while (end < sourceLine.length && sourceLine[end] !== '#') {
+        end++;
+    }
+
+    var tagText = sourceLine.substring(start, end).trim();
+    // Strip the leading '#' since the render functions already prepend one.
+    if (tagText.charAt(0) === '#') {
+        tagText = tagText.substring(1).trim();
+    }
+    return tagText;
+}
+
 function renderTagsWithPlacement(tags, placement)
 {
-    var tagsStr = tags.join(", ");
+    var displayTags = placement.fullTags || tags;
+    var tagsStr = displayTags.join(", ");
 
     if (placement.targetIndex === null || placement.targetIndex < 0 || placement.targetIndex >= textParagraphs.length) {
         var $tags = $(`<p class='tags'># ${tagsStr}</p>`);
